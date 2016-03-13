@@ -9,7 +9,6 @@ module.exports = function (homebridge) {
 function RgbRfSwitchAccessory(log, config) {
     this.log = log;
 
-    this.service = config["service"];
     this.name = config["name"];
 }
 
@@ -50,7 +49,6 @@ RgbRfSwitchAccessory.prototype = {
             .setCharacteristic(Characteristic.Model, "RGB Led")
             .setCharacteristic(Characteristic.SerialNumber, "GSU3493H");
 
-        if (this.service == "Light") {
             var lightbulbService = new Service.Lightbulb(this.name);
 
             lightbulbService
@@ -70,6 +68,5 @@ RgbRfSwitchAccessory.prototype = {
                 .on('set', this.setBrightness.bind(this));
 
             return [informationService, lightbulbService];
-        }
     }
 };
