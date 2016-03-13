@@ -1,4 +1,7 @@
+var color = require("rgb")
+
 var Service, Characteristic;
+const execSync = require('child_process').execSync;
 
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
@@ -6,34 +9,97 @@ module.exports = function (homebridge) {
     homebridge.registerAccessory("homebridge-rgb", "RgbRfSwitchAccessory", RgbRfSwitchAccessory);
 };
 
+function powerOn(deviceId, codeSendBinary, callback) {
+    var deviseOff = (deviceId * 10);
+    var deviseOn = deviseOff + 1;
+    execSync('sudo '+ codeSendBinary + ' ' + deviseOn);
+    callback();
+}
+
+function powerOff(deviceId, codeSendBinary, callback) {
+    var deviseOff = (deviceId * 10);
+    execSync('sudo '+ codeSendBinary + ' ' + deviseOff);
+    callback();
+}
+
+function encode433(deviceId, color){
+    var deviseOff =  (deviceId * 10);
+
+    var deviseOn =  deviseOff + 1;
+
+    var redStateLow = deviseOn * 1000;
+    var redStateHigh = redStateLow + 255;
+    var greenStateLow = redStateHigh + 1;
+    var greenStateHigh = greenStateLow + 255;
+    var blueStateLow = greenStateHigh + 1;
+
+
+    var redState = redStateLow + color.red;
+    var greenState = greenStateLow + color.green;
+    var blueState = blueStateLow + color.blue;
+
+
+    return {r: redState, g: greenState, b: blueState};
+}
+
+function send(encodedData, codeSendBinary, callback){
+    execSync('sudo '+ codeSendBinary + ' ' + encodedData.r);
+    execSync('sudo '+ codeSendBinary + ' ' + encodedData.g);
+    execSync('sudo '+ codeSendBinary + ' ' + encodedData.b);
+    callback();
+}
+
+function hslToRgb(hsl) {
+    //its magic. fix this!!
+    var split = color("hsl(" + hsl.h + ", " + hsl.s + ", " + hsl.l + ")").split("(")[1].split(")")[0].split(",");
+    return {red: parseInt(split[0]), green: parseInt(split[1]), blue: parseInt(split[2])};
+}
+
 function RgbRfSwitchAccessory(log, config) {
     this.log = log;
-
-    this.name = config["name"];
+    this.name = config.name;
+    this.deviceId = config.RgbRfSwitchAccessory.deviceId;
+    this.codeSendBinary = config.RgbRfSwitchAccessory.codeSendBinary;
+    this.hsl = {h: 0, s: 0, l: 100};
 }
+
 
 RgbRfSwitchAccessory.prototype = {
     setPowerState: function (state, callback) {
         console.log("setPowerState to ", state);
-        callback();
+
+        var deviceId = this.deviceId;
+        var codeSendBinary = this.codeSendBinary;
+        if(state == "1") {
+            powerOn(deviceId, codeSendBinary, callback);
+        } else {
+            send(encode433(deviceId, {red: 0, green: 0, blue: 0}, function() {
+                powerOff(deviceId, codeSendBinary, callback);
+            }));
+        }
     },
     setHue: function (level, callback) {
         console.log("setHue");
 
         this.log("Setting Hue to %s", level);
 
-        callback();
+        this.hsl.h = Math.round(level);
+
+        send(encode433(this.deviceId, hslToRgb(this.hsl)), callback);
     },
     setSaturation: function (level, callback) {
         console.log("setSaturation");
+        this.hsl.s = Math.round(level);
 
         this.log("Setting saturation to %s", level);
 
-        callback();
+        send(encode433(this.deviceId, hslToRgb(this.hsl)), callback);
     },
     setBrightness: function (level, callback) {
         console.log("setBrightness");
-        callback();
+
+        this.hsl.l = Math.round(level);
+        send(encode433(this.deviceId, hslToRgb(this.hsl)), callback);
     },
 
     identify: function (callback) {
