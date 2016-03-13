@@ -58,6 +58,7 @@ function RgbRfSwitchAccessory(log, config) {
     this.name = config.name;
     this.deviceId = config.RgbRfSwitchAccessory.deviceId;
     this.codeSendBinary = config.RgbRfSwitchAccessory.codeSendBinary;
+
     this.hsl = {h: 0, s: 0, l: 100};
 }
 
@@ -67,12 +68,11 @@ RgbRfSwitchAccessory.prototype = {
         console.log("setPowerState to ", state);
 
         var deviceId = this.deviceId;
-        var codeSendBinary = this.codeSendBinary;
         if(state == "1") {
-            powerOn(deviceId, codeSendBinary);
+            powerOn(deviceId, this.codeSendBinary);
         } else {
             send(encode433(deviceId, {red: 0, green: 0, blue: 0}));
-            powerOff(deviceId, codeSendBinary);
+            powerOff(deviceId, this.codeSendBinary);
         }
         callback();
     },
