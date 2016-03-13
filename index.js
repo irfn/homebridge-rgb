@@ -43,6 +43,7 @@ function encode433(deviceId, color){
 }
 
 function send(encodedData, codeSendBinary, callback){
+    console.log('sudo '+ codeSendBinary + ' ' + encodedData.r);
     execSync('sudo '+ codeSendBinary + ' ' + encodedData.r);
     execSync('sudo '+ codeSendBinary + ' ' + encodedData.g);
     execSync('sudo '+ codeSendBinary + ' ' + encodedData.b);
