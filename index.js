@@ -9,17 +9,15 @@ module.exports = function (homebridge) {
     homebridge.registerAccessory("homebridge-rgb", "RgbRfSwitchAccessory", RgbRfSwitchAccessory);
 };
 
-function powerOn(deviceId, codeSendBinary, callback) {
+function powerOn(deviceId, codeSendBinary) {
     var deviseOff = (deviceId * 10);
     var deviseOn = deviseOff + 1;
     execSync('sudo '+ codeSendBinary + ' ' + deviseOn);
-    callback();
 }
 
-function powerOff(deviceId, codeSendBinary, callback) {
+function powerOff(deviceId, codeSendBinary) {
     var deviseOff = (deviceId * 10);
     execSync('sudo '+ codeSendBinary + ' ' + deviseOff);
-    callback();
 }
 
 function encode433(deviceId, color){
@@ -42,12 +40,11 @@ function encode433(deviceId, color){
     return {r: redState, g: greenState, b: blueState};
 }
 
-function send(encodedData, codeSendBinary, callback){
+function send(encodedData, codeSendBinary){
     console.log('sudo '+ codeSendBinary + ' ' + encodedData.r);
     execSync('sudo '+ codeSendBinary + ' ' + encodedData.r);
     execSync('sudo '+ codeSendBinary + ' ' + encodedData.g);
     execSync('sudo '+ codeSendBinary + ' ' + encodedData.b);
-    callback();
 }
 
 function hslToRgb(hsl) {
@@ -72,12 +69,12 @@ RgbRfSwitchAccessory.prototype = {
         var deviceId = this.deviceId;
         var codeSendBinary = this.codeSendBinary;
         if(state == "1") {
-            powerOn(deviceId, codeSendBinary, callback);
+            powerOn(deviceId, codeSendBinary);
         } else {
-            send(encode433(deviceId, {red: 0, green: 0, blue: 0}, function() {
-                powerOff(deviceId, codeSendBinary, callback);
-            }));
+            send(encode433(deviceId, {red: 0, green: 0, blue: 0}));
+            powerOff(deviceId, codeSendBinary);
         }
+        callback();
     },
     setHue: function (level, callback) {
         console.log("setHue");
@@ -86,7 +83,8 @@ RgbRfSwitchAccessory.prototype = {
 
         this.hsl.h = Math.round(level);
 
-        send(encode433(this.deviceId, hslToRgb(this.hsl)), callback);
+        send(encode433(this.deviceId, hslToRgb(this.hsl)));
+        callback();
     },
     setSaturation: function (level, callback) {
         console.log("setSaturation");
@@ -94,13 +92,15 @@ RgbRfSwitchAccessory.prototype = {
 
         this.log("Setting saturation to %s", level);
 
-        send(encode433(this.deviceId, hslToRgb(this.hsl)), callback);
+        send(encode433(this.deviceId, hslToRgb(this.hsl)));
+        callback();
     },
     setBrightness: function (level, callback) {
         console.log("setBrightness");
 
         this.hsl.l = Math.round(level);
-        send(encode433(this.deviceId, hslToRgb(this.hsl)), callback);
+        send(encode433(this.deviceId, hslToRgb(this.hsl)));
+        callback();
     },
 
     identify: function (callback) {
