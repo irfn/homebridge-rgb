@@ -3,7 +3,7 @@ var Service, Characteristic;
 module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
-    homebridge.registerAccessory("homebridge-rgb", "rgb", RgbRfSwitchAccessory);
+    homebridge.registerAccessory("homebridge-rgb", "RgbRfSwitchAccessory", RgbRfSwitchAccessory);
 };
 
 function RgbRfSwitchAccessory(log, config) {
