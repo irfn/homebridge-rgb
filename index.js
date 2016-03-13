@@ -71,7 +71,7 @@ RgbRfSwitchAccessory.prototype = {
         if(state == "1") {
             powerOn(deviceId, this.codeSendBinary);
         } else {
-            send(encode433(deviceId, {red: 0, green: 0, blue: 0}));
+            send(encode433(deviceId, {red: 0, green: 0, blue: 0}), this.codeSendBinary);
             powerOff(deviceId, this.codeSendBinary);
         }
         callback();
@@ -83,7 +83,7 @@ RgbRfSwitchAccessory.prototype = {
 
         this.hsl.h = Math.round(level);
 
-        send(encode433(this.deviceId, hslToRgb(this.hsl)));
+        send(encode433(this.deviceId, hslToRgb(this.hsl)), this.codeSendBinary);
         callback();
     },
     setSaturation: function (level, callback) {
@@ -92,14 +92,14 @@ RgbRfSwitchAccessory.prototype = {
 
         this.log("Setting saturation to %s", level);
 
-        send(encode433(this.deviceId, hslToRgb(this.hsl)));
+        send(encode433(this.deviceId, hslToRgb(this.hsl)), this.codeSendBinary);
         callback();
     },
     setBrightness: function (level, callback) {
         console.log("setBrightness");
 
         this.hsl.l = Math.round(level);
-        send(encode433(this.deviceId, hslToRgb(this.hsl)));
+        send(encode433(this.deviceId, hslToRgb(this.hsl)), this.codeSendBinary);
         callback();
     },
 
